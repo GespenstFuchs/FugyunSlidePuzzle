@@ -1,0 +1,1982 @@
+﻿<Window
+    x:Class="FugyunSlidePuzzle.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:FugyunSlidePuzzle"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="ふぎゅんスライドパズル"
+    Width="1400"
+    Height="740"
+    FontSize="16"
+    PreviewKeyDown="Window_PreviewKeyDown"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <!--  ボタン共通スタイル  -->
+        <Style x:Key="CommonButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="BlueViolet " />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="15">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="Mediumorchid" />
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="Mediumorchid" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  タブページ共通スタイル  -->
+        <Style TargetType="TabControl">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid ClipToBounds="True" SnapsToDevicePixels="True">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TabPanel
+                                x:Name="HeaderPanel"
+                                Grid.Row="0"
+                                Margin="0,0,4,0"
+                                Panel.ZIndex="1"
+                                Background="Transparent"
+                                IsItemsHost="True" />
+                            <Border
+                                x:Name="Border"
+                                Grid.Row="1"
+                                Margin="0,0,0,0"
+                                Background="BlueViolet"
+                                BorderThickness="0"
+                                CornerRadius="5">
+                                <ContentPresenter
+                                    x:Name="PART_SelectedContentHost"
+                                    Margin="4"
+                                    ContentSource="SelectedContent" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  タブ項目共通スタイル  -->
+        <Style x:Key="RoundedTabItemStyle" TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border
+                            x:Name="Border"
+                            Padding="10,2"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="2"
+                            CornerRadius="20,20,0,0">
+                            <ContentPresenter
+                                x:Name="ContentSite"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                ContentSource="Header" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="AquaMarine" />
+                                <Setter TargetName="Border" Property="BorderBrush" Value="BlueViolet" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="Border" Property="Background" Value="AntiqueWhite" />
+                                <Setter TargetName="Border" Property="BorderBrush" Value="AntiqueWhite" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="AquaMarine" />
+                                <Setter TargetName="Border" Property="BorderBrush" Value="BlueViolet" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="FontSize" Value="20" />
+        </Style>
+
+        <!--  コンボボックス・トグルボタン共通スタイル  -->
+        <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="20" />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Name="Border"
+                    Grid.ColumnSpan="2"
+                    Background="Azure"
+                    BorderBrush="BlueViolet"
+                    BorderThickness="2"
+                    CornerRadius="5,5,5,5" />
+                <Path
+                    Grid.Column="1"
+                    Margin="4,0,0,0"
+                    VerticalAlignment="Center"
+                    Data="M 0 0 L 4 4 L 8 0 Z"
+                    Fill="BlueViolet" />
+            </Grid>
+        </ControlTemplate>
+
+        <!--  コンボボックス・テキストボックス共通スタイル  -->
+        <ControlTemplate x:Key="ComboBoxTextBox" TargetType="TextBox">
+            <Border
+                Name="PART_ContentHost"
+                Background="Transparent"
+                Focusable="False" />
+        </ControlTemplate>
+
+        <!--  コンボボックス共通スタイル  -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton
+                                Name="ToggleButton"
+                                Grid.Column="2"
+                                ClickMode="Press"
+                                Focusable="false"
+                                IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                Template="{StaticResource ComboBoxToggleButton}" />
+                            <ContentPresenter
+                                Name="ContentSite"
+                                Margin="10,3,23,3"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding SelectionBoxItem}"
+                                ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                IsHitTestVisible="False" />
+                            <TextBox
+                                x:Name="PART_EditableTextBox"
+                                Margin="3,3,23,3"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="Transparent"
+                                Focusable="True"
+                                IsReadOnly="{TemplateBinding IsReadOnly}"
+                                Style="{x:Null}"
+                                Template="{StaticResource ComboBoxTextBox}"
+                                Visibility="Hidden" />
+                            <Popup
+                                Name="Popup"
+                                AllowsTransparency="True"
+                                Focusable="False"
+                                IsOpen="{TemplateBinding IsDropDownOpen}"
+                                Placement="Bottom"
+                                PopupAnimation="Slide">
+                                <Grid
+                                    Name="DropDown"
+                                    MinWidth="{TemplateBinding ActualWidth}"
+                                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                    SnapsToDevicePixels="True">
+                                    <Border
+                                        x:Name="DropDownBorder"
+                                        Background="Azure"
+                                        BorderBrush="BlueViolet"
+                                        BorderThickness="2" />
+                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="95" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="Gray" />
+                            </Trigger>
+                            <Trigger Property="IsGrouping" Value="True">
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="False" />
+                            </Trigger>
+                            <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="True">
+                                <Setter TargetName="DropDownBorder" Property="CornerRadius" Value="4" />
+                                <Setter TargetName="DropDownBorder" Property="Margin" Value="0,2,0,0" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  チェックボックス共通スタイル  -->
+        <Style x:Key="AlignedCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                            <Grid
+                                Width="16"
+                                Height="16"
+                                VerticalAlignment="Center">
+                                <Border
+                                    x:Name="Border"
+                                    Width="16"
+                                    Height="16"
+                                    Background="Azure"
+                                    BorderBrush="BlueViolet"
+                                    BorderThickness="2" />
+                                <Path
+                                    x:Name="CheckMark"
+                                    Data="M 0 6 L 6 12 L 16 0"
+                                    Stroke="Blue"
+                                    StrokeThickness="3"
+                                    Visibility="Hidden" />
+                            </Grid>
+                            <ContentPresenter
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}" />
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Hidden" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  データグリッドカラムヘッダー用スタイル  -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="Yu Gothic UI" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Background" Value="DarkViolet" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <!--  編集可能データグリッド用スタイル  -->
+        <Style x:Key="EditDataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="Background" Value="AliceBlue" />
+            <Setter Property="Foreground" Value="Blue" />
+            <Setter Property="FontFamily" Value="Yu Gothic UI" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#EAD9FF" />
+                    <Setter Property="Foreground" Value="Black" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  読み取り専用データグリッド用スタイル  -->
+        <Style x:Key="ReadOnlyDataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="TextBlock.TextAlignment" Value="Center" />
+            <Setter Property="Background" Value="Silver" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#EAD9FF" />
+                    <Setter Property="Foreground" Value="Black" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <!--  全体Grid  -->
+    <Grid Background="#FFB9D1EA">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition
+                x:Name="RightColumnDefinition"
+                Width="630"
+                MaxWidth="1380" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  左側Grid  -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--  左側Canvas  -->
+            <Canvas x:Name="PuzzleCanvas" Grid.Column="0">
+                <Button
+                    x:Name="NewGameButton"
+                    Canvas.Left="20"
+                    Canvas.Top="20"
+                    Width="180"
+                    Height="40"
+                    Click="NewGameButton_Click"
+                    Content="新規開始"
+                    FontWeight="Bold"
+                    Style="{StaticResource CommonButtonStyle}">
+                    <Button.Effect>
+                        <DropShadowEffect
+                            x:Name="ButtonShadowEffect1"
+                            BlurRadius="50"
+                            Opacity="0"
+                            ShadowDepth="0"
+                            Color="Darkviolet" />
+                    </Button.Effect>
+                    <Button.Triggers>
+                        <EventTrigger RoutedEvent="Button.Click">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        AutoReverse="True"
+                                        Storyboard.TargetName="ButtonShadowEffect1"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0"
+                                        To="0.8"
+                                        Duration="0:0:0.4" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Button.Triggers>
+                </Button>
+
+                <Button
+                    x:Name="RedoButton"
+                    Canvas.Left="220"
+                    Canvas.Top="20"
+                    Width="180"
+                    Height="40"
+                    Click="RedoButton_Click"
+                    Content="元に戻す"
+                    FontWeight="Bold"
+                    Style="{StaticResource CommonButtonStyle}">
+                    <Button.Effect>
+                        <DropShadowEffect
+                            x:Name="ButtonShadowEffect2"
+                            BlurRadius="50"
+                            Opacity="0"
+                            ShadowDepth="0"
+                            Color="Darkviolet" />
+                    </Button.Effect>
+                    <Button.Triggers>
+                        <EventTrigger RoutedEvent="Button.Click">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        AutoReverse="True"
+                                        Storyboard.TargetName="ButtonShadowEffect2"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0"
+                                        To="0.8"
+                                        Duration="0:0:0.4" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Button.Triggers>
+                </Button>
+
+                <TextBlock
+                    x:Name="TimeTextBlock"
+                    Canvas.Left="452"
+                    Canvas.Top="30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    RenderTransformOrigin="0.5,0.5"
+                    Text="０秒"
+                    TextWrapping="NoWrap" />
+
+                <Button
+                    x:Name="BlinkingButton"
+                    Canvas.Left="20"
+                    Canvas.Top="80"
+                    Width="180"
+                    Height="40"
+                    Click="BlinkingButton_Click"
+                    Content="指定ピースを点滅"
+                    FontWeight="Bold"
+                    Style="{StaticResource CommonButtonStyle}">
+                    <Button.Effect>
+                        <DropShadowEffect
+                            x:Name="ButtonShadowEffect3"
+                            BlurRadius="50"
+                            Opacity="0"
+                            ShadowDepth="0"
+                            Color="Darkviolet" />
+                    </Button.Effect>
+                    <Button.Triggers>
+                        <EventTrigger RoutedEvent="Button.Click">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        AutoReverse="True"
+                                        Storyboard.TargetName="ButtonShadowEffect3"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0"
+                                        To="0.8"
+                                        Duration="0:0:0.4" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Button.Triggers>
+                </Button>
+
+                <ComboBox
+                    x:Name="PieceNumberComboBox"
+                    Canvas.Left="220"
+                    Canvas.Top="80"
+                    Width="100"
+                    Height="40"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center">
+                    <ComboBox.Resources>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="Background" Value="Azure" />
+                        </Style>
+                    </ComboBox.Resources>
+                </ComboBox>
+
+                <TextBlock
+                    x:Name="CompletionRateTextBlock"
+                    Canvas.Left="340"
+                    Canvas.Top="88"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontSize="20"
+                    FontWeight="Bold"
+                    Text="完成率：０％"
+                    TextWrapping="NoWrap" />
+
+                <CheckBox
+                    x:Name="KeyDownCheckBox"
+                    Canvas.Left="20"
+                    Canvas.Top="142"
+                    Checked="KeyDownCheckBox_Checked"
+                    FontSize="18"
+                    Style="{StaticResource AlignedCheckBoxStyle}"
+                    Unchecked="KeyDownCheckBox_Unchecked">
+                    <TextBlock>
+                        <Run FontSize="18" Text="矢印キーでピースを動かす。" />
+                        <Run
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Foreground="Red"
+                            Text="（他項目では、矢印・Ｆ１・ＢＫＳＰキーが無効）" />
+                    </TextBlock>
+                </CheckBox>
+
+                <!--  スライドパズル配置位置  -->
+            </Canvas>
+        </Grid>
+
+        <!--  GridSplitterの設定  -->
+        <GridSplitter
+            Grid.Column="1"
+            Width="8"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="DarkViolet"
+            DragDelta="GridSplitter_DragDelta" />
+
+        <!--  右側Grid  -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TabControl x:Name="SettingTabControl" Margin="10,20,20,20">
+                <TabItem
+                    Width="100"
+                    Header="設定"
+                    Style="{StaticResource RoundedTabItemStyle}">
+                    <Grid Background="#FBC0C0FF">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="60" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            x:Name="SettingTextBlock"
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Foreground="Black"
+                            Text="※設定は、新規開始ボタン押下時に反映されます。" />
+
+                        <Button
+                            x:Name="SettingTextBlockStopButton"
+                            Grid.Row="0"
+                            Grid.Column="2"
+                            Width="50"
+                            Height="40"
+                            Click="SettingTextBlockStopButton_Click"
+                            Content="停止"
+                            Style="{StaticResource CommonButtonStyle}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    x:Name="ButtonShadowEffect4"
+                                    BlurRadius="50"
+                                    Opacity="0"
+                                    ShadowDepth="0"
+                                    Color="Darkviolet" />
+                            </Button.Effect>
+                            <Button.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                Storyboard.TargetName="ButtonShadowEffect4"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0"
+                                                To="0.8"
+                                                Duration="0:0:0.4" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="パズル画像" />
+
+                        <TextBox
+                            x:Name="ImagePathTextBox"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Height="36"
+                            VerticalContentAlignment="Center"
+                            Background="Azure"
+                            BorderBrush="BlueViolet"
+                            BorderThickness="2"
+                            CaretBrush="Blue"
+                            FontSize="20">
+                            <TextBox.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="5" />
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+
+                        <Button
+                            x:Name="ImageSelectButton"
+                            Grid.Row="1"
+                            Grid.Column="2"
+                            Width="50"
+                            Height="40"
+                            Click="ImageSelectButton_Click"
+                            Content="選択"
+                            Style="{StaticResource CommonButtonStyle}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    x:Name="ButtonShadowEffect5"
+                                    BlurRadius="50"
+                                    Opacity="0"
+                                    ShadowDepth="0"
+                                    Color="Darkviolet" />
+                            </Button.Effect>
+                            <Button.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                Storyboard.TargetName="ButtonShadowEffect5"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0"
+                                                To="0.8"
+                                                Duration="0:0:0.4" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <TextBlock
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="ピース数" />
+
+                        <StackPanel
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+
+                            <ComboBox
+                                x:Name="PieceCountComboBox"
+                                Width="100"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                <ComboBox.Resources>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Background" Value="Azure" />
+                                    </Style>
+                                </ComboBox.Resources>
+                                <ComboBox.Items>
+                                    <ComboBoxItem Content="３×３" />
+                                    <ComboBoxItem Content="４×４" />
+                                    <ComboBoxItem Content="５×５" />
+                                    <ComboBoxItem Content="６×６" />
+                                    <ComboBoxItem Content="７×７" />
+                                    <ComboBoxItem Content="８×８" />
+                                </ComboBox.Items>
+                            </ComboBox>
+
+                            <TextBlock
+                                Margin="30,0,10,0"
+                                VerticalAlignment="Center"
+                                Text="ピース移動速度" />
+
+                            <ComboBox
+                                x:Name="PieceSpeedComboBox"
+                                Width="100"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                <ComboBox.Resources>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Background" Value="Azure" />
+                                    </Style>
+                                </ComboBox.Resources>
+                                <ComboBox.Items>
+                                    <ComboBoxItem Content="１" />
+                                    <ComboBoxItem Content="２" />
+                                    <ComboBoxItem Content="３" />
+                                    <ComboBoxItem Content="４" />
+                                    <ComboBoxItem Content="５" />
+                                    <ComboBoxItem Content="６" />
+                                    <ComboBoxItem Content="７" />
+                                    <ComboBoxItem Content="８" />
+                                    <ComboBoxItem Content="９" />
+                                    <ComboBoxItem Content="１０" />
+                                </ComboBox.Items>
+                            </ComboBox>
+
+                            <TextBlock
+                                Margin="0,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="（１：最速）" />
+                        </StackPanel>
+
+                        <TextBlock
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="文字サイズ" />
+
+                        <StackPanel
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+
+                            <ComboBox
+                                x:Name="FontSizeComboBox"
+                                Width="100"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                <ComboBox.Resources>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Background" Value="Azure" />
+                                    </Style>
+                                </ComboBox.Resources>
+                                <ComboBox.Items>
+                                    <ComboBoxItem Content="１０" />
+                                    <ComboBoxItem Content="１１" />
+                                    <ComboBoxItem Content="１２" />
+                                    <ComboBoxItem Content="１３" />
+                                    <ComboBoxItem Content="１４" />
+                                    <ComboBoxItem Content="１５" />
+                                    <ComboBoxItem Content="１６" />
+                                    <ComboBoxItem Content="１７" />
+                                    <ComboBoxItem Content="１８" />
+                                    <ComboBoxItem Content="１９" />
+                                    <ComboBoxItem Content="２０" />
+                                    <ComboBoxItem Content="２１" />
+                                    <ComboBoxItem Content="２２" />
+                                    <ComboBoxItem Content="２３" />
+                                    <ComboBoxItem Content="２４" />
+                                    <ComboBoxItem Content="２５" />
+                                    <ComboBoxItem Content="２６" />
+                                    <ComboBoxItem Content="２７" />
+                                    <ComboBoxItem Content="２８" />
+                                    <ComboBoxItem Content="２９" />
+                                    <ComboBoxItem Content="３０" />
+                                </ComboBox.Items>
+                            </ComboBox>
+
+                            <TextBlock
+                                Margin="30,0,10,0"
+                                VerticalAlignment="Center"
+                                Text="ピースサイズ" />
+
+                            <ComboBox
+                                x:Name="PieceSizeComboBox"
+                                Width="180"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                <ComboBox.Resources>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Background" Value="Azure" />
+                                    </Style>
+                                </ComboBox.Resources>
+                                <ComboBox.Items>
+                                    <ComboBoxItem Content="５０×５０" />
+                                    <ComboBoxItem Content="６０×６０" />
+                                    <ComboBoxItem Content="７０×７０" />
+                                    <ComboBoxItem Content="８０×８０" />
+                                    <ComboBoxItem Content="９０×９０" />
+                                    <ComboBoxItem Content="１００×１００" />
+                                </ComboBox.Items>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <TextBlock
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="文字色" />
+
+                        <StackPanel
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            Orientation="Horizontal">
+
+                            <Button
+                                x:Name="FontColorSettingButton"
+                                Width="130"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Click="FontColorSettingButton_Click"
+                                Content="文字色設定"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect6"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect6"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <TextBlock
+                                x:Name="FontColorSampleTextBlock"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                FontWeight="Bold"
+                                Foreground="Blue"
+                                Text="文字色サンプル" />
+                        </StackPanel>
+
+                        <TextBlock
+                            Grid.Row="5"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="線色" />
+
+                        <StackPanel
+                            Grid.Row="5"
+                            Grid.Column="1"
+                            Orientation="Horizontal">
+
+                            <Button
+                                x:Name="LineColorSettingButton"
+                                Width="130"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                Click="LineColorSettingButton_Click"
+                                Content="線色設定"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect7"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect7"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <TextBlock
+                                x:Name="LineColorSampleTextBlock"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                FontWeight="Bold"
+                                Text="線色サンプル" />
+                        </StackPanel>
+
+                        <TextBlock
+                            Grid.Row="6"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="背景色" />
+
+                        <StackPanel
+                            Grid.Row="6"
+                            Grid.Column="1"
+                            Orientation="Horizontal">
+
+                            <Button
+                                x:Name="BackColorSettingButton"
+                                Width="130"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                Click="BackColorSettingButton_Click"
+                                Content="背景色設定"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect8"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect8"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <TextBlock
+                                x:Name="BackgroundSampleTextBlock"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                FontWeight="Bold"
+                                Foreground="Azure"
+                                Text="背景色サンプル" />
+                        </StackPanel>
+
+                        <TextBlock
+                            Grid.Row="7"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="ピース移動音" />
+
+                        <TextBox
+                            x:Name="PieceMoveSoundPathTextBox"
+                            Grid.Row="7"
+                            Grid.Column="1"
+                            Height="36"
+                            VerticalContentAlignment="Center"
+                            Background="Azure"
+                            BorderBrush="BlueViolet"
+                            BorderThickness="2"
+                            CaretBrush="Blue"
+                            FontSize="20">
+                            <TextBox.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="5" />
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+
+                        <Button
+                            x:Name="PieceMoveSoundSelectButton"
+                            Grid.Row="7"
+                            Grid.Column="2"
+                            Width="50"
+                            Height="40"
+                            Margin="5,5,5,0"
+                            VerticalAlignment="Top"
+                            Click="PieceMoveSoundSelectButton_Click"
+                            Content="選択"
+                            Style="{StaticResource CommonButtonStyle}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    x:Name="ButtonShadowEffect9"
+                                    BlurRadius="50"
+                                    Opacity="0"
+                                    ShadowDepth="0"
+                                    Color="Darkviolet" />
+                            </Button.Effect>
+                            <Button.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                Storyboard.TargetName="ButtonShadowEffect9"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0"
+                                                To="0.8"
+                                                Duration="0:0:0.4" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <TextBlock
+                            Grid.Row="8"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="クリア音" />
+
+                        <TextBox
+                            x:Name="ClearSoundPathTextBox"
+                            Grid.Row="8"
+                            Grid.Column="1"
+                            Height="36"
+                            VerticalContentAlignment="Center"
+                            Background="Azure"
+                            BorderBrush="BlueViolet"
+                            BorderThickness="2"
+                            CaretBrush="Blue"
+                            FontSize="20">
+                            <TextBox.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="5" />
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+
+                        <Button
+                            x:Name="ClearSoundSelectButton"
+                            Grid.Row="8"
+                            Grid.Column="2"
+                            Width="50"
+                            Height="40"
+                            Click="ClearSoundSelectButton_Click"
+                            Content="選択"
+                            Style="{StaticResource CommonButtonStyle}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    x:Name="ButtonShadowEffect10"
+                                    BlurRadius="50"
+                                    Opacity="0"
+                                    ShadowDepth="0"
+                                    Color="Darkviolet" />
+                            </Button.Effect>
+                            <Button.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                Storyboard.TargetName="ButtonShadowEffect10"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0"
+                                                To="0.8"
+                                                Duration="0:0:0.4" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <TextBlock
+                            Grid.Row="9"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="番号表示" />
+
+                        <CheckBox
+                            x:Name="NumberShowCheckBox"
+                            Grid.Row="9"
+                            Grid.Column="1"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Content="ピースに番号を表示"
+                            IsChecked="True"
+                            Style="{StaticResource AlignedCheckBoxStyle}" />
+
+                        <TextBlock
+                            Grid.Row="10"
+                            Grid.Column="0"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="新規開始時" />
+
+                        <ComboBox
+                            x:Name="SelectTabItemComboBox"
+                            Grid.Row="10"
+                            Grid.Column="1"
+                            Width="380"
+                            Height="40"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center">
+                            <ComboBox.Resources>
+                                <Style TargetType="ComboBoxItem">
+                                    <Setter Property="Background" Value="Azure" />
+                                </Style>
+                            </ComboBox.Resources>
+                            <ComboBox.Items>
+                                <ComboBoxItem Content="タブを変更しない" />
+                                <ComboBoxItem Content="操作履歴タブを表示する" />
+                                <ComboBoxItem Content="パズル画像（完成図）タブを表示する" />
+                            </ComboBox.Items>
+                        </ComboBox>
+
+                        <StackPanel
+                            Grid.Row="11"
+                            Grid.Column="1"
+                            Orientation="Horizontal">
+
+                            <Button
+                                x:Name="SettingSaveButton"
+                                Width="180"
+                                Height="40"
+                                Click="SettingSaveButton_Click"
+                                Content="設定を保存"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect11"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect11"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <Button
+                                x:Name="SettingReadButton"
+                                Width="180"
+                                Height="40"
+                                Margin="20,0,0,0"
+                                Click="SettingReadButton_Click"
+                                Content="設定を読み込み"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect12"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect12"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem
+                    Width="180"
+                    Header="ピース配置設定"
+                    Style="{StaticResource RoundedTabItemStyle}">
+                    <Grid Background="#FBC0C0FF">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="60" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="50" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Margin="20,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="ピース数" />
+
+                            <ComboBox
+                                x:Name="PiecePlacementPieceCountComboBox"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Width="100"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                SelectionChanged="PiecePlacementPieceCountComboBox_SelectionChanged">
+                                <ComboBox.Resources>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Background" Value="Azure" />
+                                    </Style>
+                                </ComboBox.Resources>
+                                <ComboBox.Items>
+                                    <ComboBoxItem Content="３×３" />
+                                    <ComboBoxItem Content="４×４" />
+                                    <ComboBoxItem Content="５×５" />
+                                    <ComboBoxItem Content="６×６" />
+                                    <ComboBoxItem Content="７×７" />
+                                    <ComboBoxItem Content="８×８" />
+                                </ComboBox.Items>
+                            </ComboBox>
+                        </Grid>
+
+                        <Grid
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="20,0,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="50" />
+                                <RowDefinition Height="50" />
+                                <RowDefinition Height="50" />
+                            </Grid.RowDefinitions>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="ピース番号" />
+
+                            <Button
+                                x:Name="PiecePlacementInitButton"
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Width="230"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                Click="PiecePlacementInitButton_Click"
+                                Content="ピース配置を初期化"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect13"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect13"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <Button
+                                x:Name="PiecePlacementSaveButton"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Width="230"
+                                Height="40"
+                                Margin="0,0,20,0"
+                                HorizontalAlignment="Right"
+                                Click="PiecePlacementSaveButton_Click"
+                                Content="ピース配置を保存"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect14"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect14"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <Button
+                                x:Name="SlidePuzzleReflectionButton"
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Width="230"
+                                Height="40"
+                                HorizontalAlignment="Left"
+                                Click="SlidePuzzleReflectionButton_Click"
+                                Content="スライドパズルに反映"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect15"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect15"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <Button
+                                x:Name="PiecePlacementReadButton"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Width="230"
+                                Height="40"
+                                Margin="0,0,20,0"
+                                HorizontalAlignment="Right"
+                                Click="PiecePlacementReadButton_Click"
+                                Content="ピース配置を読み込み"
+                                Style="{StaticResource CommonButtonStyle}">
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        x:Name="ButtonShadowEffect16"
+                                        BlurRadius="50"
+                                        Opacity="0"
+                                        ShadowDepth="0"
+                                        Color="Darkviolet" />
+                                </Button.Effect>
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    AutoReverse="True"
+                                                    Storyboard.TargetName="ButtonShadowEffect16"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="0.8"
+                                                    Duration="0:0:0.4" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </Grid>
+
+                        <TextBlock
+                            x:Name="PiecePlacementTextBlock"
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            Margin="20,10,0,0"
+                            VerticalAlignment="Center"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Text="◆ピース配置" />
+
+                        <DataGrid
+                            x:Name="PiecePlacementSettingDataGrid"
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            Margin="20,4,0,0"
+                            AutoGenerateColumns="False"
+                            Background="#FFB9D1EA"
+                            BeginningEdit="PiecePlacementSettingDataGrid_BeginningEdit"
+                            BorderThickness="2"
+                            CanUserAddRows="False"
+                            CanUserDeleteRows="False"
+                            CanUserReorderColumns="False"
+                            CanUserResizeColumns="True"
+                            CanUserResizeRows="True"
+                            CanUserSortColumns="False"
+                            CellEditEnding="PiecePlacementSettingDataGrid_CellEditEnding"
+                            CellStyle="{StaticResource EditDataGridCellStyle}"
+                            GridLinesVisibility="All"
+                            HeadersVisibility="Column"
+                            HorizontalScrollBarVisibility="Visible"
+                            IsReadOnly="False"
+                            SelectionUnit="Cell"
+                            VerticalGridLinesBrush="DarkViolet"
+                            VerticalScrollBarVisibility="Visible">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column0}"
+                                    Header="列１">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="Background" Value="Azure" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column1}"
+                                    Header="列２">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="Background" Value="Azure" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column2}"
+                                    Header="列３">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="Background" Value="Azure" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                    <DataGridTextColumn.CellStyle>
+                                        <Style BasedOn="{StaticResource EditDataGridCellStyle}" TargetType="DataGridCell">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Value}" Value="3">
+                                                    <Setter Property="Background" Value="Silver" />
+                                                    <Setter Property="Cursor" Value="No" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.CellStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column3}"
+                                    Header="列４">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="Background" Value="Azure" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                    <DataGridTextColumn.CellStyle>
+                                        <Style BasedOn="{StaticResource EditDataGridCellStyle}" TargetType="DataGridCell">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Value}" Value="4">
+                                                    <Setter Property="Background" Value="Silver" />
+                                                    <Setter Property="Cursor" Value="No" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.CellStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column4}"
+                                    Header="列５">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="Background" Value="Azure" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                    <DataGridTextColumn.CellStyle>
+                                        <Style BasedOn="{StaticResource EditDataGridCellStyle}" TargetType="DataGridCell">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Value}" Value="5">
+                                                    <Setter Property="Background" Value="Silver" />
+                                                    <Setter Property="Cursor" Value="No" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.CellStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column5}"
+                                    Header="列６">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="Background" Value="Azure" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                    <DataGridTextColumn.CellStyle>
+                                        <Style BasedOn="{StaticResource EditDataGridCellStyle}" TargetType="DataGridCell">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Value}" Value="6">
+                                                    <Setter Property="Background" Value="Silver" />
+                                                    <Setter Property="Cursor" Value="No" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.CellStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column6}"
+                                    Header="列７">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="Background" Value="Azure" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                    <DataGridTextColumn.CellStyle>
+                                        <Style BasedOn="{StaticResource EditDataGridCellStyle}" TargetType="DataGridCell">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Value}" Value="7">
+                                                    <Setter Property="Background" Value="Silver" />
+                                                    <Setter Property="Cursor" Value="No" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.CellStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column7}"
+                                    Header="列８">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="Background" Value="Azure" />
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                    <DataGridTextColumn.CellStyle>
+                                        <Style BasedOn="{StaticResource EditDataGridCellStyle}" TargetType="DataGridCell">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Value}" Value="8">
+                                                    <Setter Property="Background" Value="Silver" />
+                                                    <Setter Property="Cursor" Value="No" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.CellStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock
+                            x:Name="PiecePlacementSettingErrorTextBlock"
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            Margin="20,4,0,20"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Stretch"
+                            FontWeight="Bold"
+                            Foreground="Red"
+                            Text="※設定は、シャッフルボタン押下時に反映されます。"
+                            Visibility="Collapsed" />
+                    </Grid>
+                </TabItem>
+
+                <TabItem
+                    Width="130"
+                    Header="操作履歴"
+                    Style="{StaticResource RoundedTabItemStyle}">
+                    <Grid Background="#FBC0C0FF">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="60" />
+                            <RowDefinition Height="40" />
+                            <RowDefinition Height="40" />
+                            <RowDefinition Height="*" MinHeight="100" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="230" />
+                        </Grid.RowDefinitions>
+
+                        <Button
+                            x:Name="OperationHistoryInitSaveButton"
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Width="280"
+                            Height="40"
+                            Margin="20,20,0,0"
+                            HorizontalAlignment="Left"
+                            Click="OperationHistoryInitSaveButton_Click"
+                            Content="操作履歴・初期配置を保存"
+                            Style="{StaticResource CommonButtonStyle}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    x:Name="ButtonShadowEffect17"
+                                    BlurRadius="50"
+                                    Opacity="0"
+                                    ShadowDepth="0"
+                                    Color="Darkviolet" />
+                            </Button.Effect>
+                            <Button.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                Storyboard.TargetName="ButtonShadowEffect17"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0"
+                                                To="0.8"
+                                                Duration="0:0:0.4" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="20,10,0,0"
+                            Text="保存した初期配置は、【ピース配置を読み込み】ボタンにて読み込めます。" />
+
+                        <Grid Grid.Row="2" Grid.Column="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                x:Name="OperationHistoryTextBlock"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Margin="20,10,0,0"
+                                FontSize="22"
+                                FontWeight="Bold"
+                                Text="◆操作履歴" />
+
+                            <CheckBox
+                                x:Name="OperationHistoryEditCheckBox"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="0,10,20,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Checked="OperationHistoryEditCheckBox_Checked"
+                                Content="操作履歴を編集する"
+                                Style="{StaticResource AlignedCheckBoxStyle}"
+                                Unchecked="OperationHistoryEditCheckBox_Unchecked" />
+                        </Grid>
+
+                        <DockPanel Grid.Row="3" Grid.Column="0">
+                            <TextBox
+                                x:Name="OperationHistoryTextBox"
+                                Margin="20,0,20,10"
+                                AcceptsReturn="True"
+                                Background="Silver"
+                                BorderBrush="BlueViolet"
+                                BorderThickness="2"
+                                CaretBrush="Blue"
+                                HorizontalScrollBarVisibility="Visible"
+                                IsReadOnly="True"
+                                TextWrapping="NoWrap"
+                                VerticalScrollBarVisibility="Visible" />
+                        </DockPanel>
+
+                        <TextBlock
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            Margin="20,0,0,4"
+                            VerticalAlignment="Bottom"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Text="◆初期配置" />
+
+                        <Button
+                            x:Name="InitSlidePuzzleReflectionButton"
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            Width="200"
+                            Height="40"
+                            Margin="0,0,240,0"
+                            HorizontalAlignment="Right"
+                            Click="InitSlidePuzzleReflectionButton_Click"
+                            Content="スライドパズルに反映"
+                            Style="{StaticResource CommonButtonStyle}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    x:Name="ButtonShadowEffect18"
+                                    BlurRadius="50"
+                                    Opacity="0"
+                                    ShadowDepth="0"
+                                    Color="Darkviolet" />
+                            </Button.Effect>
+                            <Button.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                Storyboard.TargetName="ButtonShadowEffect18"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0"
+                                                To="0.8"
+                                                Duration="0:0:0.4" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <Button
+                            x:Name="PiecePlacementReflectionButton"
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            Width="200"
+                            Height="40"
+                            Margin="0,0,20,0"
+                            HorizontalAlignment="Right"
+                            Click="PiecePlacementReflectionButton_Click"
+                            Content="ピース配置に反映"
+                            Style="{StaticResource CommonButtonStyle}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    x:Name="ButtonShadowEffect19"
+                                    BlurRadius="50"
+                                    Opacity="0"
+                                    ShadowDepth="0"
+                                    Color="Darkviolet" />
+                            </Button.Effect>
+                            <Button.Triggers>
+                                <EventTrigger RoutedEvent="Button.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                Storyboard.TargetName="ButtonShadowEffect19"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0"
+                                                To="0.8"
+                                                Duration="0:0:0.4" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <DataGrid
+                            x:Name="InitDataGrid"
+                            Grid.Row="5"
+                            Grid.Column="0"
+                            Margin="20,0,20,20"
+                            AutoGenerateColumns="False"
+                            Background="#FFB9D1EA"
+                            BorderThickness="2"
+                            CanUserAddRows="False"
+                            CanUserDeleteRows="False"
+                            CanUserReorderColumns="False"
+                            CanUserResizeColumns="True"
+                            CanUserResizeRows="True"
+                            CanUserSortColumns="False"
+                            CellStyle="{StaticResource ReadOnlyDataGridCellStyle}"
+                            GridLinesVisibility="All"
+                            HeadersVisibility="Column"
+                            HorizontalScrollBarVisibility="Visible"
+                            IsReadOnly="True"
+                            SelectionUnit="Cell"
+                            VerticalGridLinesBrush="DarkViolet"
+                            VerticalScrollBarVisibility="Visible">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column0}"
+                                    Header="列１">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column1}"
+                                    Header="列２">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column2}"
+                                    Header="列３">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column3}"
+                                    Header="列４">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column4}"
+                                    Header="列５">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column5}"
+                                    Header="列６">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column6}"
+                                    Header="列７">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Column7}"
+                                    Header="列８">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="30" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem
+                    Width="240"
+                    Header="パズル画像（完成図）"
+                    Style="{StaticResource RoundedTabItemStyle}">
+                    <ScrollViewer
+                        Background="#FBC0C0FF"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Auto">
+                        <Image x:Name="PuzzleImage" Margin="20,20,20,20" />
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>
